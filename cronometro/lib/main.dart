@@ -16,28 +16,31 @@ class TimerBloc {
   final _controller = StreamController<int>();
   late Timer _timer;
   int _counter = 0;
+  bool _isRunning = false;
 
   Stream<int> get timerStream => _controller.stream;
 
-  TimerBloc() {
-    _timer = Timer.periodic(Duration(milliseconds: 10), _tick);
-  }
-
-  void _tick(Timer timer) {
-    _counter++;
-    _controller.sink.add(_counter);
-  }
-
   void startTimer() {
-    _timer = Timer.periodic(Duration(milliseconds: 10), _tick);
+    if (!_isRunning) {
+      _timer = Timer.periodic(Duration(milliseconds: 100), _tick);
+      _isRunning = true;
+    }
   }
 
   void stopTimer() {
-    _timer.cancel();
+    if (_isRunning) {
+      _timer.cancel();
+      _isRunning = false;
+    }
   }
 
   void resetTimer() {
     _counter = 0;
+    _controller.sink.add(_counter);
+  }
+
+  void _tick(Timer timer) {
+    _counter++;
     _controller.sink.add(_counter);
   }
 
@@ -61,12 +64,13 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  String formatTime(int centiseconds) {
-    int hours = centiseconds ~/ 360000;
-    int minutes = (centiseconds ~/ 6000) % 60;
-    int seconds = (centiseconds ~/ 100) % 60;
-    int cs = centiseconds % 100;
-    return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}.${cs.toString().padLeft(2, '0')}';
+  String formatTime(int deciseconds) {
+    int seconds = deciseconds ~/ 10;
+    int minutes = (seconds ~/ 60) % 60;
+    int hours = (seconds ~/ 3600);
+    seconds = seconds % 60;
+    int ds = deciseconds % 10;
+    return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}.${ds.toString()}';
   }
 
   @override
@@ -84,12 +88,12 @@ class _MyHomePageState extends State<MyHomePage> {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return Text(
-                    formatTime(snapshot.data!),
+                    formatTime(snapshot.data ?? 0),
                     style: TextStyle(fontSize: 48),
                   );
                 } else {
                   return Text(
-                    '0:00:00.00',
+                    '0:00:0',
                     style: TextStyle(fontSize: 48),
                   );
                 }
@@ -127,3 +131,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
