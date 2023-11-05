@@ -1,6 +1,6 @@
 # Cronometro App in Dart
 
-Ho creato un'applicazione di cronometro utilizzando il framework Flutter in Dart. Questa app consente agli utenti di avviare, fermare e ripristinare un timer in centesimi di secondo.
+Ho creato un'applicazione di cronometro utilizzando il framework Flutter in Dart. Questa app consente agli utenti di avviare, fermare e ripristinare un timer in decimi di secondo.
 
 ## Struttura del Codice
 
@@ -12,7 +12,7 @@ La classe `MyApp` è la radice dell'app. Definisce il tema generale dell'applica
 
 ### 2. **TimerBloc**
 
-La classe `TimerBloc` è responsabile della gestione del timer. Utilizza uno stream per inviare i dati del cronometro alla UI e un oggetto `Timer` per contare i centesimi di secondo.
+La classe `TimerBloc` è responsabile della gestione del timer. Utilizza uno stream per inviare i dati del cronometro alla UI e un oggetto `Timer` per contare i decimi di secondo.
 
 - **Metodi:**
   - `startTimer()`: Avvia il timer.
@@ -25,7 +25,7 @@ La classe `TimerBloc` è responsabile della gestione del timer. Utilizza uno str
 La classe `MyHomePage` è uno stato modificabile (StatefulWidget) che mostra l'interfaccia utente del cronometro.
 
 - **Metodi:**
-  - `formatTime(int centiseconds)`: Converte i centesimi di secondo in un formato leggibile HH:MM:SS.CS.
+  - `formatTime(int deciseconds)`: Converte i centesimi di secondo in un formato leggibile HH:MM:SS.DS.
   
 - **Interfaccia Utente:**
   - Mostra il timer nella parte centrale della schermata.
@@ -33,6 +33,6 @@ La classe `MyHomePage` è uno stato modificabile (StatefulWidget) che mostra l'i
 
 ## Utilizzo dell'App
 
-- L'utente può premere il pulsante "Avvia" per avviare il cronometro. Il timer inizierà a contare i centesimi di secondo.
+- L'utente può premere il pulsante "Avvia" per avviare il cronometro. Il timer inizierà a contare i decimi di secondo.
 - Premendo il pulsante "Ferma", l'utente può fermare il cronometro al punto in cui si trova.
 - Premendo il pulsante "Resetta", l'utente può riportare il cronometro a 0.
