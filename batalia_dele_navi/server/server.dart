@@ -30,11 +30,6 @@ void writeMessage(Client client, String message) {
   client.write(str + '\n');
 }
 
-void processMessage(Client client, String message){
-  String str = message.toUpperCase();
-
-}
-
 class ServerGame {
 
   late int _port;
@@ -71,7 +66,7 @@ class ServerGame {
                   'YOU HAVE TO PLACE YOUR SHIPS\n' + 
                   'THEIR DIMENTIONS ARE: 5 - 4 - 3 - 3 - 2\n' + 
                   'YOU HAVE TO WRITE THE COORDINATES AND THE ORIETETION IN THIS WAY:\n' +
-                  '"X Y DIM ORI/VER" FOR EXEMPLLE -> "1 8 5 ORI"');
+                  '"X Y DIM ORI/VER" FOR EXEMPLLE -> "1 8 5 ORI"\n');
   }
 
   static void matchMaking(Socket socket){
@@ -132,7 +127,7 @@ class Landpiece {
     }
   }
 
-  void setTaken(){
+  void setHit(){
     _hitted = true;
   }
 
@@ -201,13 +196,80 @@ class Client {
   }
 
   void messageHandler(data){
+    print('entrato fase uno');
     String message = String.fromCharCodes(data).trim();
     if(isPlaying && isTurn){
-
     }
+    //SEZIONE DELLA DISPOSIZIONE DELLE NAVI
     if(ready == false){
-      List<String> messageParts = message.split(' ');
-      if()
+      print('entrato fase due');
+      List<String> messages = message.split(' ');
+      if(checkMessageShip(messages)){
+        ships.remove(int.parse(messages[2]));
+        if(messages[3].toUpperCase() == 'ORI'){
+          for(int i = int.parse(messages[0]); i < (int.parse(messages[0]) + int.parse(messages[2])); i++){
+            _clientLand[int.parse(messages[1])][i].setTake();
+          }
+        }else{
+          for(int i = int.parse(messages[1]); i < (int.parse(messages[1]) + int.parse(messages[2])); i++){
+            _clientLand[i][int.parse(messages[0])].setTake();
+          }
+        }
+        _socket.write('OK\n');
+        if(ships.length == 0){
+          ready = true;
+          _socket.write('READY\n');
+        }
+        return;
+      }
+      _socket.write('NO\n');
+      return;
+    }
+  }
+
+
+  //METODO CHE FA IL CHECK DELLE INFORMAZIONI INVIATE DAL CLIENT,
+  //PER QUANTO RIGUARDA LA FASE DI DISPOSIZIONE DELLE NAVI
+  bool checkMessageShip(List<String> message){
+    if(message.length < 4){
+      return false;
+    }else{
+      if(int.parse(message[0]) < 0 ||  int.parse(message[0]) > 9 || int.parse(message[1]) < 0 || int.parse(message[1]) > 9){
+        return false;
+      }
+      else{
+        if(ships.contains(int.parse(message[2]))){
+          if(message[3].toUpperCase() == 'ORI'){
+            int total = int.parse(message[2]) + int.parse(message[0]);
+            if(total > 10){
+              return false;
+            }else{
+              for(int i = int.parse(message[0]); i < total; i++){
+                if(_clientLand[int.parse(message[1])][i].getTake()){
+                  return false;
+                }
+              }
+              return true;
+            }
+          }else if(message[3].toUpperCase() == 'VER'){
+            int total = int.parse(message[2]) + int.parse(message[1]);
+            if(total > 10){
+              return false;
+            }else{
+              for(int i = int.parse(message[0]); i < total; i++){
+                if(_clientLand[int.parse(message[1])][i].getTake()){
+                  return false;
+                }
+              }
+              return true;
+            }
+          }else{
+            return false;
+          }
+        }else{
+          return false;
+        }
+      }
     }
   }
 
