@@ -42,7 +42,7 @@ class ServerGame {
   }
   
   void start(){
-    ServerSocket.bind(InternetAddress.anyIPv4, _port).then((ServerSocket server) {
+    ServerSocket.bind('127.0.0.1', _port).then((ServerSocket server) {
       print("server start");
       server.listen((socket) {
         handleConnection(socket);
@@ -69,7 +69,7 @@ class ServerGame {
                   '"X Y DIM ORI/VER" FOR EXEMPLLE -> "1 8 5 ORI"\n');
   }
 
-  static void matchMaking(Socket socket){
+  static bool matchMaking(Socket socket){
     int first = -1;
     int second = -1;
     for(int i = 0; i < _players.length; i++){
@@ -85,7 +85,18 @@ class ServerGame {
       }
     }
     if(first == -1 || second == -1){
-      socket.write('NO MATCH, WAIT FOR OPPONENTS');
+      return false;
+    }else{
+      _players[first].opponent = _players[second];
+      _players[second].opponent = _players[first];
+      _players[first].isTurn = true;
+      _players[first].isPlaying = true;
+      _players[second].isPlaying = true;
+      _players[first].write('FOUND THE OPPONENT\n');
+      _players[second].write('FOUND THE OPPONENT\n');
+      _players[first].write('YOUR TURN\n');
+      _players[second].write('WAIT YOUR TURN\n');
+      return true;
     }
   }
 }
@@ -158,11 +169,15 @@ class Client {
   int get _port => _socket.remotePort;
   late int _n;
 
+  int hit = 0;
+
+  late Client opponent;
+
   bool isPlaying = false;
   bool ready = false;
   bool isTurn = false;
-  static var _clientLand = List<List>.generate(10, (i) => List<Landpiece>.generate(10, (index) => Landpiece(), growable: false), growable: false);
-  List<int> ships = [2, 3, 3, 4, 5];
+  var _clientLand = List<List>.generate(10, (i) => List<Landpiece>.generate(10, (index) => Landpiece(), growable: false), growable: false);
+  List<int> ships = [2];
 
   Client(Socket s) {
     _n = ++N;
@@ -174,35 +189,63 @@ class Client {
   void printClientLand(){
     for(int i = 0; i < 10; i++){
       for(int j = 0; j < 10; j++){
-        _socket.write(_clientLand[i][j].toString() + '-');
+        _socket.write(_clientLand[i][j].personalString() + '-');
       }
       _socket.write('\n');
     }
   }
 
-  String printOpponentLand(){
-    String land = '';
+  void printOpponentLand(){
     for(int i = 0; i < 10; i++){
       for(int j = 0; j < 10; j++){
-        land += (_clientLand[i][j] + '-');
+        _socket.write(opponent.getLand()[i][j].toString() + '-');
       }
-      land += '\n';
+      _socket.write('\n');
     }
-    return land;
   }
 
   String get_n(){
     return _n.toString();
   }
 
+  List<List<dynamic>> getLand(){
+    return _clientLand;
+  }
+
   void messageHandler(data){
-    print('entrato fase uno');
     String message = String.fromCharCodes(data).trim();
+    if(message == 'SHOW ME'){
+      printClientLand();
+      return;
+    }
+    if(message == 'SHOW OP'){
+      printOpponentLand();
+      return;
+    }
     if(isPlaying && isTurn){
+      List<String> messages = message.split(' ');
+      if(checkMessageAttack(messages)){
+        if(opponent.getLand()[int.parse(messages[1])][int.parse(messages[0])].getTake()){
+          opponent.hit += 1;
+        }
+        opponent.getLand()[int.parse(messages[1])][int.parse(messages[0])].setHit();
+        _socket.write('FIRE\n');
+      }
+      isTurn = false;
+      _socket.write('OPPONENT TURN\n');
+      opponent.isTurn = true;
+      opponent.write('YOUR TURN\n');
+      return;
+    }
+    if(ready == true && isPlaying == false){
+      if(ServerGame.matchMaking(_socket)){
+      }else{
+        _socket.write('NO MATCH, WAIT FOR OPPONENTS');
+      }
+      return;
     }
     //SEZIONE DELLA DISPOSIZIONE DELLE NAVI
     if(ready == false){
-      print('entrato fase due');
       List<String> messages = message.split(' ');
       if(checkMessageShip(messages)){
         ships.remove(int.parse(messages[2]));
@@ -224,6 +267,15 @@ class Client {
       }
       _socket.write('NO\n');
       return;
+    }
+  }
+
+
+  bool checkMessageAttack(List<String> message){
+    if(int.parse(message[0]) < 0 ||  int.parse(message[0]) > 9 || int.parse(message[1]) < 0 || int.parse(message[1]) > 9){
+      return false;
+    }else{
+      return true;
     }
   }
 
