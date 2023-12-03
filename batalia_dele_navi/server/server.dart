@@ -27,15 +27,14 @@ void finishedHandler(client) {
 void writeMessage(Client client, String message) {
   String str = message.toUpperCase();
   print('[' + client.get_n() + ']: ' + str);
-  client.write(str + '\n');
+  client.write(str + '\t');
 }
 
 class ServerGame {
 
   late int _port;
 
-  static List<Client> _players = [];
-
+  static List<Client> players = [];
 
   ServerGame(port){
     _port = port;
@@ -52,7 +51,7 @@ class ServerGame {
 
   void handleConnection(Socket socket) {
     Client client = Client(socket);
-    _players.add(client);
+    players.add(client);
     print('client ' +
       client.get_n() +
       ' connected from ' +
@@ -69,32 +68,32 @@ class ServerGame {
     print('match call from client ' + client.get_n());
     int first = -1;
     int second = -1;
-    for(int i = 0; i < _players.length; i++){
-      if(_players[i].isPlaying == false && _players[i].ready){
+    for(int i = 0; i < players.length; i++){
+      if(players[i].isPlaying == false && players[i].ready){
         first = i;
         break;
       }
     }
-    for(int i = first + 1; i < _players.length; i++){
-      if(_players[i].isPlaying == false && _players[i].ready){
+    for(int i = first + 1; i < players.length; i++){
+      if(players[i].isPlaying == false && players[i].ready){
         second = i;
         break;
       }
     }
     if(first == -1 || second == -1){
       print('NO ONE READY');
-      client.write('WAITING FOR AN OPPONENT');
+      client.write('W_OP\t');
       return false;
     }else{
-      _players[first].opponent = _players[second];
-      _players[second].opponent = _players[first];
-      _players[first].isTurn = true;
-      _players[first].isPlaying = true;
-      _players[second].isPlaying = true;
-      _players[first].write('FOUND THE OPPONENT\n');
-      _players[second].write('FOUND THE OPPONENT\n');
-      _players[first].write('YOUR TURN\n');
-      _players[second].write('WAIT YOUR TURN\n');
+      players[first].opponent = players[second];
+      players[second].opponent = players[first];
+      players[first].isTurn = true;
+      players[first].isPlaying = true;
+      players[second].isPlaying = true;
+      players[first].write('F_OP\t');
+      players[second].write('F_OP\t');
+      players[first].write('TURN\t');
+      players[second].write('W_TURN\t');
       return true;
     }
   }
@@ -172,6 +171,7 @@ class Client {
 
   late Client opponent;
 
+  bool done = false;
   bool isPlaying = false;
   bool ready = false;
   bool isTurn = false;
@@ -190,29 +190,30 @@ class Client {
 
   void doneGame(){
     _socket.write("FINISH");
-    exit(-1);
+    ServerGame.players.remove(this);
+    done = true;
   }
 
   void printClientLand(){
-    String mes = '';
+    String mes = 'MAP\n';
     for(int i = 0; i < 10; i++){
-      for(int j = 0; j < 10; j++){
+      for(int j = 0; j < 9; j++){
         mes += (_clientLand[i][j].personalString() + '-');
       }
-      mes += ('\n');
+      mes += (_clientLand[i][9].personalString() + '\n');
     }
-    _socket.write(mes);
+    _socket.write(mes + '\t');
   }
 
   void printOpponentLand(){
-    String mes = '';
+    String mes = 'MAP\n';
     for(int i = 0; i < 10; i++){
-      for(int j = 0; j < 10; j++){
+      for(int j = 0; j < 9; j++){
         mes += (opponent.getLand()[i][j].toString() + '-');
       }
-      mes += ('\n');
+      mes += (_clientLand[i][9].personalString() + '\n');
     }
-    _socket.write(mes);
+    _socket.write(mes + '\t');
   }
 
   String get_n(){
@@ -224,6 +225,10 @@ class Client {
   }
 
   void messageHandler(data){
+    if(done){
+      _socket.write('FINISHED');
+      return;
+    }
     String message = String.fromCharCodes(data).trim();
     if(message == 'SHOW ME'){
       printClientLand();
@@ -237,20 +242,26 @@ class Client {
       List<String> messages = message.split(' ');
       if(checkMessageAttack(messages)){
         if(opponent.getLand()[int.parse(messages[1])][int.parse(messages[0])].getTake()){
+          _socket.write('HIT\t');
+          opponent.write('HITTED\t');
           opponent.hit += 1;
           if(opponent.hit == Client.maxHit){
-            opponent.write('HAI PERSO');
-            _socket.write('HAI VINTO');
+            opponent.write('LOSE\t');
+            _socket.write('WIN\t');
             opponent.doneGame();
             doneGame();
+            return;
           }
         }
+        else{
+          _socket.write('MISS\t');
+          opponent.write('MISSED\t');
+        }
         opponent.getLand()[int.parse(messages[1])][int.parse(messages[0])].setHit();
-        _socket.write('FIRE\n');
         isTurn = false;
-        _socket.write('OPPONENT TURN\n');
+        _socket.write('W_TURN\t');
         opponent.isTurn = true;
-        opponent.write('YOUR TURN\n');
+        opponent.write('TURN\t');
       }
       return;
     }
@@ -272,15 +283,15 @@ class Client {
             _clientLand[i][int.parse(messages[0])].setTake();
           }
         }
-        _socket.write('OK\n');
+        _socket.write('OK\t');
         if(ships.length == 0){
+          _socket.write('READY\t');
           ready = true;
-          _socket.write('READY\n');
           ServerGame.matchMaking(this);
         }
         return;
       }
-      _socket.write('NO\n');
+      _socket.write('NO\t');
       return;
     }
   }
