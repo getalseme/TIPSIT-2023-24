@@ -1,6 +1,6 @@
 import 'dart:io';
 
-// USE also netcat 127.0.0.1 3000
+// USE also netcat 127.0.0.1 3000SHOW
 
 // global variable must be initialized later (null safety)
 //late Client client;
@@ -78,7 +78,7 @@ class ServerGame {
         break;
       }
     }
-    for(int i = first; i < _players.length; i++){
+    for(int i = first + 1; i < _players.length; i++){
       if(_players[i].isPlaying == false && _players[i].ready){
         second = i;
         break;
@@ -179,6 +179,10 @@ class Client {
   var _clientLand = List<List>.generate(10, (i) => List<Landpiece>.generate(10, (index) => Landpiece(), growable: false), growable: false);
   List<int> ships = [2];
 
+  static int maxHit = 2;
+
+  bool done = false;
+
   Client(Socket s) {
     _n = ++N;
     _socket = s;
@@ -187,21 +191,25 @@ class Client {
   }
 
   void printClientLand(){
+    String mes = '';
     for(int i = 0; i < 10; i++){
       for(int j = 0; j < 10; j++){
-        _socket.write(_clientLand[i][j].personalString() + '-');
+        mes += (_clientLand[i][j].personalString() + '-');
       }
-      _socket.write('\n');
+      mes += ('\n');
     }
+    _socket.write(mes);
   }
 
   void printOpponentLand(){
+    String mes = '';
     for(int i = 0; i < 10; i++){
       for(int j = 0; j < 10; j++){
-        _socket.write(opponent.getLand()[i][j].toString() + '-');
+        mes += (opponent.getLand()[i][j].toString() + '-');
       }
-      _socket.write('\n');
+      mes += ('\n');
     }
+    _socket.write(mes);
   }
 
   String get_n(){
@@ -213,12 +221,15 @@ class Client {
   }
 
   void messageHandler(data){
+    if(this.done){
+      exit(-1);
+    }
     String message = String.fromCharCodes(data).trim();
     if(message == 'SHOW ME'){
       printClientLand();
       return;
     }
-    if(message == 'SHOW OP'){
+    if(message == 'SHOW OP' && isPlaying){
       printOpponentLand();
       return;
     }
@@ -227,14 +238,20 @@ class Client {
       if(checkMessageAttack(messages)){
         if(opponent.getLand()[int.parse(messages[1])][int.parse(messages[0])].getTake()){
           opponent.hit += 1;
+          if(opponent.hit == Client.maxHit){
+            opponent.write('HAI PERSO');
+            _socket.write('HAI VINTO');
+            opponent.done = true;
+            this.done = true;
+          }
         }
         opponent.getLand()[int.parse(messages[1])][int.parse(messages[0])].setHit();
         _socket.write('FIRE\n');
+        isTurn = false;
+        _socket.write('OPPONENT TURN\n');
+        opponent.isTurn = true;
+        opponent.write('YOUR TURN\n');
       }
-      isTurn = false;
-      _socket.write('OPPONENT TURN\n');
-      opponent.isTurn = true;
-      opponent.write('YOUR TURN\n');
       return;
     }
     if(ready == true && isPlaying == false){
@@ -275,7 +292,10 @@ class Client {
     if(int.parse(message[0]) < 0 ||  int.parse(message[0]) > 9 || int.parse(message[1]) < 0 || int.parse(message[1]) > 9){
       return false;
     }else{
-      return true;
+      if(_clientLand[int.parse(message[1])][int.parse(message[0])].getHit() == false){
+        return true;
+      }
+      return false;
     }
   }
 

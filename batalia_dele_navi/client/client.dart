@@ -1,17 +1,31 @@
 import 'dart:io';
-import 'dart:convert';
 
-void main() async{
-  Socket socket = await Socket.connect('127.0.0.1', 3000);
-  print('connesso al server');
+late Socket socket;
 
-  socket.listen((data) { 
-    print(utf8.decode(data).trim());
+void main() {
+  Socket.connect("localhost", 3000).then((Socket sock) {
+    socket = sock;
+    socket.listen(dataHandler,
+        onError: errorHandler, onDone: doneHandler, cancelOnError: false);
+  }, onError: (e) {
+    print("Unable to connect: $e");
+    exit(1);
   });
 
-  stdin.listen((input) { 
-    var message = utf8.decode(input).trim();
-    socket.write(message);
-  });
+  // connect standard in to the socket
+  stdin
+      .listen((data) => socket.write(String.fromCharCodes(data).trim() + '\n'));
+}
 
-} 
+void dataHandler(data) {
+  print(String.fromCharCodes(data).trim());
+}
+
+void errorHandler(error, StackTrace trace) {
+  print(error);
+}
+
+void doneHandler() {
+  socket.destroy();
+  exit(0);
+}
