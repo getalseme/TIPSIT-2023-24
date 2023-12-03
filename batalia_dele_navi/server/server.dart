@@ -62,14 +62,11 @@ class ServerGame {
   }
 
   void firstMessage(Socket socket){
-    socket.write( 'WELLCOME\n' + 
-                  'YOU HAVE TO PLACE YOUR SHIPS\n' + 
-                  'THEIR DIMENTIONS ARE: 5 - 4 - 3 - 3 - 2\n' + 
-                  'YOU HAVE TO WRITE THE COORDINATES AND THE ORIETETION IN THIS WAY:\n' +
-                  '"X Y DIM ORI/VER" FOR EXEMPLLE -> "1 8 5 ORI"\n');
+    socket.write('HI'); 
   }
 
-  static bool matchMaking(Socket socket){
+  static bool matchMaking(Client client){
+    print('match call from client ' + client.get_n());
     int first = -1;
     int second = -1;
     for(int i = 0; i < _players.length; i++){
@@ -85,6 +82,8 @@ class ServerGame {
       }
     }
     if(first == -1 || second == -1){
+      print('NO ONE READY');
+      client.write('WAITING FOR AN OPPONENT');
       return false;
     }else{
       _players[first].opponent = _players[second];
@@ -177,17 +176,21 @@ class Client {
   bool ready = false;
   bool isTurn = false;
   var _clientLand = List<List>.generate(10, (i) => List<Landpiece>.generate(10, (index) => Landpiece(), growable: false), growable: false);
+  //List<int> ships = [2, 3, 3, 4, 5];
   List<int> ships = [2];
 
-  static int maxHit = 2;
-
-  bool done = false;
+  static final int maxHit = 2;
 
   Client(Socket s) {
     _n = ++N;
     _socket = s;
     _socket.listen(messageHandler,
         onError: errorHandler, onDone: finishedHandler);
+  }
+
+  void doneGame(){
+    _socket.write("FINISH");
+    exit(-1);
   }
 
   void printClientLand(){
@@ -221,9 +224,6 @@ class Client {
   }
 
   void messageHandler(data){
-    if(this.done){
-      exit(-1);
-    }
     String message = String.fromCharCodes(data).trim();
     if(message == 'SHOW ME'){
       printClientLand();
@@ -241,8 +241,8 @@ class Client {
           if(opponent.hit == Client.maxHit){
             opponent.write('HAI PERSO');
             _socket.write('HAI VINTO');
-            opponent.done = true;
-            this.done = true;
+            opponent.doneGame();
+            doneGame();
           }
         }
         opponent.getLand()[int.parse(messages[1])][int.parse(messages[0])].setHit();
@@ -255,10 +255,7 @@ class Client {
       return;
     }
     if(ready == true && isPlaying == false){
-      if(ServerGame.matchMaking(_socket)){
-      }else{
-        _socket.write('NO MATCH, WAIT FOR OPPONENTS');
-      }
+      ServerGame.matchMaking(this);
       return;
     }
     //SEZIONE DELLA DISPOSIZIONE DELLE NAVI
@@ -279,6 +276,7 @@ class Client {
         if(ships.length == 0){
           ready = true;
           _socket.write('READY\n');
+          ServerGame.matchMaking(this);
         }
         return;
       }
@@ -289,12 +287,15 @@ class Client {
 
 
   bool checkMessageAttack(List<String> message){
+    print('check attack');
     if(int.parse(message[0]) < 0 ||  int.parse(message[0]) > 9 || int.parse(message[1]) < 0 || int.parse(message[1]) > 9){
+      print('attack no correct');
       return false;
     }else{
-      if(_clientLand[int.parse(message[1])][int.parse(message[0])].getHit() == false){
+      if(opponent.getLand()[int.parse(message[1])][int.parse(message[0])].getHit() == false){
         return true;
       }
+      print('already attacked');
       return false;
     }
   }
