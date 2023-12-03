@@ -1,7 +1,156 @@
+import 'dart:io';
+
+import 'package:app_battaglia_navale/land.dart';
 import 'package:flutter/material.dart';
 
+late ClientGame cg;
+
 void main() {
+  cg = ClientGame();
   runApp(MyApp());
+}
+
+class ClientGame{
+
+  late Socket socket; 
+
+  Land _landOp = Land();
+  Land _land = Land();
+
+
+
+  bool _ready = false;
+  bool _playing = false;
+
+  String startMessage = '';
+
+  List<String> serverResponce = [];
+
+  ClientGame(){
+    startConnection();
+  }
+
+    List<List<String>> getLand(){
+      return _land.getMatrix();
+    }
+
+    List<List<String>> getLandOp(){
+      return _landOp.getMatrix();
+    }
+
+    void writeToServer(String message){
+      socket.write(message);
+    }
+
+    void startConnection(){
+      Socket.connect('192.168.1.28', 3000).then((Socket sock) {
+      this.socket = sock;
+      socket.listen(dataHandler,
+          onError: errorHandler, onDone: doneHandler, cancelOnError: false);
+      }, onError: (e) {
+        print("Unable to connect: $e");
+        exit(1);
+      });
+    }
+
+  void errorHandler(error, StackTrace trace) {
+    print(error);
+  }
+
+  void doneHandler() {
+    socket.destroy();
+    exit(0);  
+  } 
+  
+  void dataHandler(data) {
+    String msgs = String.fromCharCodes(data).trim();
+    List<String> msg = msgs.split('\t');
+    //print(msg);
+    int n = msg.length;
+    for (int i = 0; i < n; i++){
+      if(msg[i].contains('MAP')){
+        _land.messageToGrid(msg[i]);
+        continue;
+      }
+      if(msg[i].contains('MAP OP')){
+        _landOp.messageToGrid(msg[i]);
+        continue;
+      }
+      if(_ready){
+        if(_playing){
+          if(msg[i] == 'WIN'){
+            print('CONGRATULATIONS, YOU WON THE GAME');
+            continue;
+          }
+          if(msg[i] == 'LOSE'){
+            print('WHAT A SHAME, YOU LOST THE GAME');
+            continue;
+          }
+          if(msg[i] == 'FINISHED'){
+            print('THE GAME IS FINISHED');
+          }
+          if(msg[i] == 'TURN'){
+            print("IT'S YOUR TURN");
+            continue;
+          }
+          if(msg[i] == 'W_TURN'){
+            print("WAIT YOUR TURN");
+            continue;
+          }
+          if(msg[i] == 'HIT'){
+            print("YOU HITTED ONE OF YOUR ENEMY'S SHIPS");
+            continue;
+          }
+          if(msg[i] == 'HITTED'){
+            print('ONE OF YOUR SHIPS HAS BEEN HITTED');
+            continue;
+          }
+          if(msg[i] == 'MISS'){
+            print("YOU MISSED YOUR ENEMY'S SHIPS");
+            continue;
+          }
+          if(msg[i] == 'MISSED'){
+            print('YOUR SHIPS HAS BEEN MISSED');
+            continue;
+          }
+        }
+        if(msg[i] == 'W_OP'){
+          print('WAIT FOR AN OPPONENT');
+          continue;
+        }
+        if(msg[i] == 'F_OP'){
+          print('FOUND AN OPPONENT');
+          _playing = true;
+          continue;
+        }
+      }else{
+        if(msg[i] == 'READY'){
+          print('SHIPS SUCCESFULLY PLACED');
+          _ready = true;
+          continue;
+        }
+        if(msg[i] == 'HI'){
+          print(  'WELLCOME\n' + 
+                  'YOU HAVE TO PLACE YOUR SHIPS\n' + 
+                  'THEIR DIMENTIONS ARE: 5 - 4 - 3 - 3 - 2\n' + 
+                  'YOU HAVE TO WRITE THE COORDINATES AND THE ORIETETION IN THIS WAY:\n' +
+                  '"X Y DIM ORI/VER" FOR EXEMPLLE -> "1 8 5 ORI"');
+          continue;
+        }
+        if(msg[i] == 'OK'){
+          print('COMMAND ACCEPTED');
+          serverResponce.add(msg[i]);
+          socket.write('SHOW ME');
+          continue;
+        }
+        if(msg[i] == 'NO'){
+          print('COMMAND NOT ACCEPTED');
+          serverResponce.add(msg[i]);
+          continue;
+        }
+      }
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -24,15 +173,9 @@ class BattleshipGame extends StatefulWidget {
 
 class _BattleshipGameState extends State<BattleshipGame> {
   int currentGrid = 1; // Variable to track the current grid (1 or 2)
-  List<List<String>> grid1 = List.generate(
-    10,
-    (_) => List.filled(10, '-'),
-  );
-
-  List<List<String>> grid2 = List.generate(
-    10,
-    (_) => List.filled(10, '-'),
-  );
+  
+  List<List<String>> grid1 = cg.getLand();
+  List<List<String>> grid2 = cg.getLandOp();
 
   List<List<String>> getCurrentGrid() {
     return currentGrid == 1 ? grid1 : grid2;
@@ -53,15 +196,21 @@ class _BattleshipGameState extends State<BattleshipGame> {
     // Check if ship placement is valid here
     print('Cell selected: Row $row, Col $col');
     // For demonstration purposes, let's update the selected cell with 'X'
-    setState(() {
-      getCurrentGrid()[row][col] = 'X';
-    });
+    int ship = ships[selectedShip];
 
+    if(selectedOrientation == 'vertical'){
+      cg.writeToServer('$col $row $ship VER');  
+    }else{
+      cg.writeToServer('$col $row $ship ORI');    
+    }
     // Disable the placed ship's button
-    setState(() {
-      ships.removeAt(selectedShip);
-      selectedShip = 0;
-    });
+    if(cg.serverResponce[0] == 'OK'){
+      setState(() {
+        ships.removeAt(selectedShip);
+        selectedShip = 0;
+      });
+    }
+
   }
 
   void selectOrientation(String orientation) {
@@ -144,7 +293,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
               final currentMatrix = getCurrentGrid();
               return GestureDetector(
                 onTap: () {
-                  if (selectedShip > 0) {
+                  if (selectedShip > -1) {
                     cellSelected(row, col);
                   }
                 },
@@ -169,15 +318,24 @@ class _BattleshipGameState extends State<BattleshipGame> {
 
   @override
   Widget build(BuildContext context) {
+  if (ships.isEmpty) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Battleship Game'),
+      ),
+      body: buildGameGrid(),
+    );
+  } else {
     return Scaffold(
       appBar: AppBar(
         title: Text('Battleship Game'),
       ),
       body: Center(
-        child: currentGrid == 1 ? buildInitialSetup() : buildGameGrid(),
+        child: buildInitialSetup(),
       ),
     );
   }
+}
 
   Widget buildGameGrid() {
     return Column(

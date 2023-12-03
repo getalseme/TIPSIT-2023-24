@@ -41,7 +41,7 @@ class ServerGame {
   }
   
   void start(){
-    ServerSocket.bind('127.0.0.1', _port).then((ServerSocket server) {
+    ServerSocket.bind('192.168.1.28', _port).then((ServerSocket server) {
       print("server start");
       server.listen((socket) {
         handleConnection(socket);
@@ -176,10 +176,10 @@ class Client {
   bool ready = false;
   bool isTurn = false;
   var _clientLand = List<List>.generate(10, (i) => List<Landpiece>.generate(10, (index) => Landpiece(), growable: false), growable: false);
-  //List<int> ships = [2, 3, 3, 4, 5];
-  List<int> ships = [2];
+  List<int> ships = [2, 3, 3, 4, 5];
+  //List<int> ships = [2];
 
-  static final int maxHit = 2;
+  static final int maxHit = 17;
 
   Client(Socket s) {
     _n = ++N;
@@ -206,7 +206,7 @@ class Client {
   }
 
   void printOpponentLand(){
-    String mes = 'MAP\n';
+    String mes = 'MAP OP\n';
     for(int i = 0; i < 10; i++){
       for(int j = 0; j < 9; j++){
         mes += (opponent.getLand()[i][j].toString() + '-');
@@ -364,6 +364,7 @@ class Client {
 
   void finishedHandler() {
     print('${_address}:${_port} Disconnected');
+    ServerGame.players.remove(this);
     _socket.close();
   }
 

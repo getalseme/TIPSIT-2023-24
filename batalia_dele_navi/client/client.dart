@@ -19,7 +19,7 @@ class TestualClient{
   }
 
   void startConnection(){
-    Socket.connect("localhost", 3000).then((Socket sock) {
+    Socket.connect('192.168.1.28', 3000).then((Socket sock) {
     socket = sock;
     socket.listen(dataHandler,
         onError: errorHandler, onDone: doneHandler, cancelOnError: false);
