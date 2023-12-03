@@ -1,6 +1,8 @@
+import 'dart:io';
+
+late Socket socket;
 
 void main(){
-  print('STARTED PROGRAM');
   Land l = Land();
   String msg =  "MAP\n -X- - - - - - - - \nO- - - - - - - - - \n - -N- - - - - - - \n - - - - - - - - - \n - - - - - - - - - \n - - - - - - - - - \n - - - - - - - - - \n - - - - - - - - - \n - - - - - - - - - \n - - - - - - - - - \n";
   l.messageToGrid(msg);
@@ -19,7 +21,11 @@ class Land{
   }
 
   void initialize_matrix(){
-      matrix = List<List<String>>.generate(10, (i) => List<String>.generate(10, (index) => ' ', growable: false), growable: false);
+    for (int i = 0; i < 10; i++){
+      for(int j = 0; i < 10; j++){
+        matrix[i].add(' ');
+      }
+    }
   }
 
   void setCell(int x, int y, String value){
