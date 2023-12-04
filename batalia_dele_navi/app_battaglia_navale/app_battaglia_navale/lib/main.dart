@@ -278,6 +278,15 @@ class _BattleshipGameState extends State<BattleshipGame> {
     });
   }
 
+  String getCurrentGridName(){
+    if(getCurrentGrid() == grid1){
+      return "MY FLEET";
+    }
+    else{
+      return "ENEMY FLEET";
+    }
+  }
+
   Widget buildInitialSetup() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -463,55 +472,62 @@ class _BattleshipGameState extends State<BattleshipGame> {
         ),
       );
     }
-    
   }
 
-  Widget buildGameGrid() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: GridView.builder(
-            itemCount: 100, // 10x10 grid
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 10,
-            ),
-            itemBuilder: (context, index) {
-              final row = index ~/ 10;
-              final col = index % 10;
-              final currentMatrix = getCurrentGrid();
-              return GestureDetector(
-                onTap: () {
-                    cellSelected(row, col);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                  ),
-                  child: Center(
-                    child: Text(
-                      currentMatrix[row][col],
-                      style: TextStyle(fontSize: 20.0),
-                    ),
+  Widget buildGameGrid(){
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(
+        getCurrentGridName(),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 24.0,
+        ),
+      ),
+      SizedBox(height: 10), // Spazio tra il nome e la griglia
+      Expanded(
+        child: GridView.builder(
+          itemCount: 100, // 10x10 grid
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 10,
+          ),
+          itemBuilder: (context, index) {
+            final row = index ~/ 10;
+            final col = index % 10;
+            final currentMatrix = getCurrentGrid();
+            return GestureDetector(
+              onTap: () {
+                cellSelected(row, col);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(),
+                ),
+                child: Center(
+                  child: Text(
+                    currentMatrix[row][col],
+                    style: TextStyle(fontSize: 20.0),
                   ),
                 ),
-              );
+              ),
+            );
+          },
+        ),
+      ),
+      SizedBox(height: 20),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              switchGrid();
             },
+            child: Text('Switch Grid'),
           ),
-        ),
-        SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                switchGrid();
-              },
-              child: Text('Switch Grid'),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+        ],
+      ),
+    ],
+  );
+}
 }
