@@ -192,6 +192,14 @@ class _BattleshipGameState extends State<BattleshipGame> {
     });
   }
 
+  void updateAllGrids() {
+    setState(() {
+      // Update both grid1 and grid2 with new data
+      grid1 = cg.getLand();
+      grid2 = cg.getLandOp();
+    });
+  }
+
   void cellSelected(int row, int col) {
     // Check if ship placement is valid here
     print('Cell selected: Row $row, Col $col');
@@ -209,6 +217,9 @@ class _BattleshipGameState extends State<BattleshipGame> {
         ships.removeAt(selectedShip);
         selectedShip = 0;
       });
+      cg.serverResponce.removeAt(0);
+    }else{
+      cg.serverResponce.removeAt(0);
     }
 
   }
@@ -295,6 +306,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
                 onTap: () {
                   if (selectedShip > -1) {
                     cellSelected(row, col);
+                    updateAllGrids();
                   }
                 },
                 child: Container(
@@ -353,8 +365,9 @@ class _BattleshipGameState extends State<BattleshipGame> {
               final currentMatrix = getCurrentGrid();
               return GestureDetector(
                 onTap: () {
-                  if (selectedShip > 0) {
+                  if (selectedShip > -1) {
                     cellSelected(row, col);
+                    updateAllGrids();
                   }
                 },
                 child: Container(
