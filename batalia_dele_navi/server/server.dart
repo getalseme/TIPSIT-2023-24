@@ -177,7 +177,6 @@ class Client {
   bool isTurn = false;
   var _clientLand = List<List>.generate(10, (i) => List<Landpiece>.generate(10, (index) => Landpiece(), growable: false), growable: false);
   List<int> ships = [2, 3, 3, 4, 5];
-  //List<int> ships = [2];
 
   static final int maxHit = 17;
 
@@ -211,7 +210,7 @@ class Client {
       for(int j = 0; j < 9; j++){
         mes += (opponent.getLand()[i][j].toString() + '-');
       }
-      mes += (_clientLand[i][9].personalString() + '\n');
+      mes += (opponent.getLand()[i][9].toString() + '\n');
     }
     _socket.write(mes + '\t');
   }
@@ -340,8 +339,8 @@ class Client {
             if(total > 10){
               return false;
             }else{
-              for(int i = int.parse(message[0]); i < total; i++){
-                if(_clientLand[int.parse(message[1])][i].getTake()){
+              for(int i = int.parse(message[1]); i < total; i++){
+                if(_clientLand[i][int.parse(message[0])].getTake()){
                   return false;
                 }
               }
