@@ -22,7 +22,7 @@ class ClientGame{
   bool _playing = false;
   bool _isTurn = false;
   bool _finish = false;
-  late bool _win;
+  bool _win = true;
 
   String startMessage = '';
 
@@ -90,6 +90,7 @@ class ClientGame{
           }
           if(msg[i] == 'FINISHED'){
             print('THE GAME IS FINISHED');
+            _finish = true;
           }
           if(msg[i] == 'TURN'){
             print("IT'S YOUR TURN");
