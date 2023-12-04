@@ -12,8 +12,6 @@ class TestualClient{
   bool _ready = false;
   bool _playing = false;
 
-  String startMessage = '';
-
   void start(){
     startConnection();
   }
