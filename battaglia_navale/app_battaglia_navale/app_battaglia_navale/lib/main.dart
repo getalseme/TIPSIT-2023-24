@@ -45,7 +45,7 @@ class ClientGame{
     }
 
     void startConnection(){
-      Socket.connect('192.168.1.28', 3000).then((Socket sock) {
+      Socket.connect('192.168.204.106', 3000).then((Socket sock) {
       this.socket = sock;
       socket.listen(dataHandler,
           onError: errorHandler, onDone: doneHandler, cancelOnError: false);
@@ -219,7 +219,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
     print('Cell selected: Row $row, Col $col');
     if(cg._playing && cg._isTurn){
       cg.writeToServer('$col $row');
-    }
+    }else{
     // For demonstration purposes, let's update the selected cell with 'X'
     int ship = ships[selectedShip];
 
@@ -228,14 +228,6 @@ class _BattleshipGameState extends State<BattleshipGame> {
     }else{
       cg.writeToServer('$col $row $ship ORI');    
     }
-    if(cg.serverResponce[0] == 'OK'){
-      setState(() {
-        ships.removeAt(selectedShip);
-        selectedShip = 0;
-      });
-      cg.serverResponce.removeAt(0);
-    }else{
-      cg.serverResponce.removeAt(0);
     }
   }
 
@@ -435,8 +427,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
                   ),
                 ),
               ),
-            if(cg._finish)
-              if(cg._win)
+            if(cg._finish && cg._win)
                 Container(
                   color: Colors.black54, // Sfondo scuro per il popup
                   child: const Center(
@@ -452,7 +443,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
                     ),
                   ),
                 ),
-              if(!cg._win)
+              if(cg._finish && !cg._win)
                 Container(
                   color: Colors.black54, // Sfondo scuro per il popup
                   child: const Center(

@@ -41,7 +41,7 @@ class ServerGame {
   }
   
   void start(){
-    ServerSocket.bind('192.168.1.28', _port).then((ServerSocket server) {
+    ServerSocket.bind('192.168.204.106', _port).then((ServerSocket server) {
       print("server start");
       server.listen((socket) {
         handleConnection(socket);
