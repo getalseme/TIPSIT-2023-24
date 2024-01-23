@@ -1,28 +1,32 @@
 import 'dart:async';
 import 'dart:io';
-
-import 'package:app_battaglia_navale/land.dart';
+import 'land.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+/*
+* author @ANDREA.VERDICCHIO
+ */
 
 late ClientGame cg;
 
 void main() {
   cg = ClientGame();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class ClientGame{
 
-  late Socket socket; 
+  late Socket socket;
 
-  Land _landOp = Land();
-  Land _land = Land();
+  final Land _landOp = Land();
+  final Land _land = Land();
 
   bool _ready = false;
   bool _playing = false;
   bool _isTurn = false;
   bool _finish = false;
-  bool _win = true;
+  final bool _win = true;
 
   String startMessage = '';
 
@@ -45,25 +49,29 @@ class ClientGame{
     }
 
     void startConnection(){
-      Socket.connect('192.168.204.106', 3000).then((Socket sock) {
+      Socket.connect('192.168.62.106', 3000).then((Socket sock) {
       this.socket = sock;
       socket.listen(dataHandler,
           onError: errorHandler, onDone: doneHandler, cancelOnError: false);
       }, onError: (e) {
-        print("Unable to connect: $e");
+        if (kDebugMode) {
+          print("Unable to connect: $e");
+        }
         exit(1);
       });
     }
 
   void errorHandler(error, StackTrace trace) {
-    print(error);
+    if (kDebugMode) {
+      print(error);
+    }
   }
 
   void doneHandler() {
     socket.destroy();
     exit(0);  
-  } 
-  
+  }
+ 
   void dataHandler(data) {
     String msgs = String.fromCharCodes(data).trim();
     List<String> msg = msgs.split('\t');
@@ -163,19 +171,23 @@ class ClientGame{
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Battleship Game',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.lightBlue,
       ),
-      home: BattleshipGame(),
+      home: const BattleshipGame(),
     );
   }
 }
 
 class BattleshipGame extends StatefulWidget {
+  const BattleshipGame({super.key});
+
   @override
   _BattleshipGameState createState() => _BattleshipGameState();
 }
@@ -187,7 +199,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
   int currentGrid = 1; // Variable to track the current grid (1 or 2)
 
   late Timer _timer;
-  
+ 
   List<List<String>> grid1 = cg.getLand();
   List<List<String>> grid2 = cg.getLandOp();
 
@@ -195,10 +207,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
     return currentGrid == 1 ? grid1 : grid2;
   }
 
-  // Store the ships' sizes
-  //final List<int> ships = [2, 3, 3, 4, 5];
-  //int selectedShip = 0; // Index of the selected ship size
-  String selectedOrientation = 'horizontal'; // Initial orientation
+  String selectedOrientation = 'horizontal';
 
   void switchGrid() {
     setState(() {
@@ -216,7 +225,9 @@ class _BattleshipGameState extends State<BattleshipGame> {
 
   void cellSelected(int row, int col) {
     // Check if ship placement is valid here
-    print('Cell selected: Row $row, Col $col');
+    if (kDebugMode) {
+      print('Cell selected: Row $row, Col $col');
+    }
     if(cg._playing && cg._isTurn){
       cg.writeToServer('$col $row');
     }else{
@@ -242,7 +253,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
     super.initState();
 
     // Start the periodic timer when the widget is initialized
-    _timer = Timer.periodic(Duration(milliseconds: 100), updateAllGrids);
+    _timer = Timer.periodic(const Duration(milliseconds: 100), updateAllGrids);
   }
 
   @override
@@ -254,7 +265,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
 
   void startPlayerTurnCheck() {
     // Controlla periodicamente lo stato del turno del giocatore
-    Timer.periodic(Duration(seconds: 2), (Timer timer) {
+    Timer.periodic(const Duration(seconds: 2), (Timer timer) {
       setState(() {
         // Utilizza la variabile _isTurn dalla classe ClientGame
         // Per esempio, se _isTurn è true, nascondi il popup
@@ -272,10 +283,10 @@ class _BattleshipGameState extends State<BattleshipGame> {
 
   String getCurrentGridName(){
     if(getCurrentGrid() == grid1){
-      return "MY FLEET";
+      return "LA MIA FLOTTA";
     }
     else{
-      return "ENEMY FLEET";
+      return "FLOTTA NEMICA";
     }
   }
 
@@ -283,11 +294,11 @@ class _BattleshipGameState extends State<BattleshipGame> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
+        const Text(
           'Select Ship Size:',
           style: TextStyle(fontSize: 20),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 10,
           children: ships.map((shipSize) {
@@ -297,19 +308,19 @@ class _BattleshipGameState extends State<BattleshipGame> {
                   selectedShip = ships.indexOf(shipSize);
                 });
               },
-              child: Text('$shipSize'),
               style: selectedShip == ships.indexOf(shipSize)
-                  ? ElevatedButton.styleFrom(primary: Colors.green)
+                  ? ElevatedButton.styleFrom(backgroundColor: Colors.red)
                   : null,
+              child: Text('$shipSize'),
             );
           }).toList(),
         ),
-        SizedBox(height: 20),
-        Text(
+        const SizedBox(height: 20),
+        const Text(
           'Select Orientation:',
           style: TextStyle(fontSize: 20),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -317,24 +328,24 @@ class _BattleshipGameState extends State<BattleshipGame> {
               onPressed: () {
                 selectOrientation('horizontal');
               },
-              child: Text('Horizontal'),
               style: selectedOrientation == 'horizontal'
-                  ? ElevatedButton.styleFrom(primary: Colors.green)
+                  ? ElevatedButton.styleFrom(backgroundColor: Colors.red)
                   : null,
+              child: const Text('Horizontal'),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             ElevatedButton(
               onPressed: () {
                 selectOrientation('vertical');
               },
-              child: Text('Vertical'),
               style: selectedOrientation == 'vertical'
-                  ? ElevatedButton.styleFrom(primary: Colors.green)
+                  ? ElevatedButton.styleFrom(backgroundColor: Colors.red)
                   : null,
+              child: const Text('Vertical'),
             ),
           ],
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         // Display grid for ship placement
         Container(
           width: 300,
@@ -344,7 +355,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
           ),
           child: GridView.builder(
             itemCount: 100,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 10,
             ),
             itemBuilder: (context, index) {
@@ -362,7 +373,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
                   child: Center(
                     child: Text(
                       currentMatrix[row][col],
-                      style: TextStyle(fontSize: 20.0),
+                      style: const TextStyle(fontSize: 20.0),
                     ),
                   ),
                 ),
@@ -376,10 +387,10 @@ class _BattleshipGameState extends State<BattleshipGame> {
 
   @override
   Widget build(BuildContext context) {
-    if(!ships.isEmpty){
+    if(ships.isNotEmpty){
       return Scaffold(
         appBar: AppBar(
-          title: Text('Battleship Game'),
+          title: const Text('Battleship Game'),
         ),
         body: Center(
           child: buildInitialSetup(),
@@ -397,7 +408,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
             // Popup fisso quando isTurn è false
             if (!cg._isTurn)
               Container(
-                color: Colors.black54, // Sfondo scuro per il popup
+                color: Colors.black,
                 child: const Center(
                   child: Card(
                     elevation: 5,
@@ -413,7 +424,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
               ),
             if(!cg._playing)
               Container(
-                color: Colors.black54, // Sfondo scuro per il popup
+                color: Colors.black, // Sfondo scuro per il popup
                 child: const Center(
                   child: Card(
                     elevation: 5,
@@ -429,14 +440,14 @@ class _BattleshipGameState extends State<BattleshipGame> {
               ),
             if(cg._finish && cg._win)
                 Container(
-                  color: Colors.black54, // Sfondo scuro per il popup
+                  color: Colors.black, // Sfondo scuro per il popup
                   child: const Center(
                     child: Card(
                       elevation: 5,
                       child: Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
-                          'CONGRATULAZIONI HAI VINTO! :-D',
+                          'CONGRATULAZIONI HAI VINTO!',
                           style: TextStyle(fontSize: 20),
                         ),
                       ),
@@ -445,14 +456,14 @@ class _BattleshipGameState extends State<BattleshipGame> {
                 ),
               if(cg._finish && !cg._win)
                 Container(
-                  color: Colors.black54, // Sfondo scuro per il popup
+                  color: Colors.black, // Sfondo scuro per il popup
                   child: const Center(
                     child: Card(
                       elevation: 5,
                       child: Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
-                          "CAVOLETTI HAI PERSO! :'-(",
+                          "HAI PERSO! :(",
                           style: TextStyle(fontSize: 20),
                         ),
                       ),
@@ -471,16 +482,16 @@ class _BattleshipGameState extends State<BattleshipGame> {
     children: [
       Text(
         getCurrentGridName(),
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 24.0,
         ),
       ),
-      SizedBox(height: 10), // Spazio tra il nome e la griglia
+      const SizedBox(height: 10), // Spazio tra il nome e la griglia
       Expanded(
         child: GridView.builder(
           itemCount: 100, // 10x10 grid
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 10,
           ),
           itemBuilder: (context, index) {
@@ -498,7 +509,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
                 child: Center(
                   child: Text(
                     currentMatrix[row][col],
-                    style: TextStyle(fontSize: 20.0),
+                    style: const TextStyle(fontSize: 20.0),
                   ),
                 ),
               ),
@@ -506,7 +517,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
           },
         ),
       ),
-      SizedBox(height: 20),
+      const SizedBox(height: 20),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -514,7 +525,7 @@ class _BattleshipGameState extends State<BattleshipGame> {
             onPressed: () {
               switchGrid();
             },
-            child: Text('Switch Grid'),
+            child: const Text('Switch Grid'),
           ),
         ],
       ),

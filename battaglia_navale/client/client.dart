@@ -1,13 +1,13 @@
 import 'dart:io';
 
-late Socket socket;
-
 void main() {
   TestualClient tc = TestualClient();
   tc.start();
 }
 
 class TestualClient{
+
+  late Socket socket;
 
   bool _ready = false;
   bool _playing = false;
@@ -17,8 +17,8 @@ class TestualClient{
   }
 
   void startConnection(){
-    Socket.connect('192.168.204.106', 3000).then((Socket sock) {
-    socket = sock;
+    Socket.connect('192.168.62.106', 3000).then((Socket sock) {
+    this.socket = sock;
     socket.listen(dataHandler,
         onError: errorHandler, onDone: doneHandler, cancelOnError: false);
     }, onError: (e) {
