@@ -1,6 +1,6 @@
 import 'package:floor/floor.dart';
 
-@entity
+@Entity(tableName: 'post')
 class Post {
   @PrimaryKey(autoGenerate: true)
   final int? id;
@@ -11,7 +11,7 @@ class Post {
   Post(this.id, this.title, this.body);
 }
 
-@entity
+@Entity(tableName: 'comment')
 class Comment {
   @PrimaryKey(autoGenerate: true)
   final int? id;
@@ -21,6 +21,17 @@ class Comment {
 
   Comment(this.id, this.text, this.postId);
 }
+
+@Entity(
+  tableName: 'comment',
+  foreignKeys: [
+    ForeignKey(
+      childColumns: ['postId'],
+      parentColumns: ['id'],
+      entity: Post,
+    )
+  ]
+)
 
 @dao
 abstract class PostDao {
