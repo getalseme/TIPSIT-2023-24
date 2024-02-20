@@ -4,10 +4,6 @@ import 'land.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/*
-* author @ANDREA.VERDICCHIO
- */
-
 late ClientGame cg;
 
 void main() {
