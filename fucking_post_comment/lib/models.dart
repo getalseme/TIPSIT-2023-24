@@ -11,17 +11,6 @@ class Post {
   Post(this.id, this.title, this.body);
 }
 
-@Entity(tableName: 'comment')
-class Comment {
-  @PrimaryKey(autoGenerate: true)
-  final int? id;
-
-  final String text;
-  final int postId;
-
-  Comment(this.id, this.text, this.postId);
-}
-
 @Entity(
   tableName: 'comment',
   foreignKeys: [
@@ -32,6 +21,16 @@ class Comment {
     )
   ]
 )
+class Comment {
+  @PrimaryKey(autoGenerate: true)
+  final int? id;
+
+  final String text;
+  
+  final int postId;
+
+  Comment(this.id, this.text, this.postId);
+}
 
 @dao
 abstract class PostDao {

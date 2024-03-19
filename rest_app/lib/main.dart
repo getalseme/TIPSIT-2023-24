@@ -61,7 +61,7 @@ class _EmployeePageState extends State<EmployeePage> {
 
   Future<void> _fetchEmployee(String code) async {
     final response = await http.get(Uri.parse(
-        'http://192.168.43.35/projects/client_rest/lib/page.php?codice=$code'));
+        'http://192.168.151.106/server.php?codice=$code'));
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
