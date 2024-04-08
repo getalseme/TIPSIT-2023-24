@@ -36,33 +36,34 @@ class HomePage extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => EmployeePage()),
+              MaterialPageRoute(builder: (context) => EmployePage()),
             );
           },
           style: ElevatedButton.styleFrom(
             primary: Colors.blue,
             textStyle: TextStyle(fontSize: 20),
           ),
-          child: Text('Visualizza dipendente'),
+          child: Text('Visualizza dipendente',
+                      style: TextStyle(fontSize: 20, color: Colors.white.withOpacity(0.8))),
         ),
       ),
     );
   }
 }
 
-class EmployeePage extends StatefulWidget {
+class EmployePage extends StatefulWidget {
   @override
   _EmployeePageState createState() => _EmployeePageState();
 }
 
-class _EmployeePageState extends State<EmployeePage> {
+class _EmployeePageState extends State<EmployePage> {
   final TextEditingController _controller = TextEditingController();
   String _response = '';
 
   Future<void> _fetchEmployee(String code) async {
+    const serverIp = "192.168.116.106"; 
     final response = await http.get(Uri.parse(
-        'http://192.168.151.106/server.php?codice=$code'));
-
+        'http://$serverIp/server.php?codice=$code'));
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
       if (jsonResponse['stato'] == "OK-1") {
@@ -116,7 +117,8 @@ class _EmployeePageState extends State<EmployeePage> {
                 primary: Colors.blue,
                 textStyle: TextStyle(fontSize: 20),
               ),
-              child: Text('Invia richiesta'),
+              child: Text('Invia richiesta',
+                          style: TextStyle(fontSize: 20, color: Colors.white.withOpacity(0.8)))
             ),
             SizedBox(height: 20),
             Text(

@@ -1,0 +1,140 @@
+-----------USER-------------
+
+GET	/user
+	Description: Ottieni i dati dell'utente
+	Require { email, token }
+	Responce { email, name, surname, behaviors[], classes[] }
+
+GET	/user/room
+	Description: Ottieni l'aula in cui si trova un utente
+	Require {email, token }
+	Responce {id, number, site, name}
+
+POST	/user/login
+	Description: Effettui il log in con un utente
+	Require { password, email }
+	Responce { token, expire_time }
+
+POST	/user/add
+	Description: aggiungi un utente al database
+	Require { token, email, name, surname, password, behaviors[] }
+	Responce {}
+
+POST	/user/addList
+	Description: aggiunge una lista di utenti al database
+	Require { token, users[] }
+	Responce {}
+
+POST	/user/admin
+	Description: assegna ad un utente il ruolo di admin
+	Require { id, token }
+	Responce {}
+
+DELETE	/user/logout
+	Description: effettua il logout dal sito eliminando la sessione
+	Require { token }
+	Responce {}
+
+DELETE	/user
+	Description: elimina un utente dal database
+	Require { id, token }
+	Responce {}
+
+-----------CLASS-------------
+
+GET	/class
+	Description: ottieni la classe in base al suo id
+	Require { token, id }
+	Responce { id, name, creation }
+
+GET	/class/users
+	Description: ottieni gli utenti appartenenti ad una classe
+	Require { token, id }
+	Responce { Users[] }
+
+POST	/class/add
+	Description: crea una nuova classe nel database
+	Require { token, name }
+	Response {}
+
+POST	/class/user
+	Description: aggiunge un utente ad una classe
+	Require { token, id, email }
+	Responce {}
+
+POST	/class/user/addList
+	Description: aggiunge una lista di utenti ad 
+	Require { token, id, emails[] }
+	Responce {}
+
+PUT	/class
+	Description: modifica il nome della classe
+	Require { token, id, name }
+	Responce {}
+
+DELETE	/class
+	Description: elimina la classe dal database
+	Require { token, id }
+	Responce {}
+
+DELETE	/class/deleteList
+	Description: elimina la lista di classi dal database
+	Require { token, id[] }
+	Responce {}
+
+DELETE	/class/user
+	Description: elimina un utente dalla classe
+	Require { id_classe, email, token }
+	Responce {}
+
+DELETE	/class/user/deleteList
+	Description: elimina una lista di utenti dalla classe
+	Require { id_classe, emails[], token }
+	Responce {}
+
+
+-----------ROOM-------------
+
+
+GET	/room
+	Description: ottieni la stanza in base al suo id
+	Require { token, id }
+	Responce { name, number, site }
+
+GET	/room/users
+	Description: ottieni gli utenti presenti ad una classe in un giorno e ora
+	Require { token, id, dateTime }
+	Responce { Users[] }
+
+GET	/room/free
+	Description: ottieni una risposta se la stanza è libera o meno in quel giorno e ora
+	Require { token, id, dateTime }
+	Response { free(boolean) }
+
+GET	/room/freeRooms
+	Description: ottieni le stanze libere in quel giorno e ora
+	Require { token, dateTime }
+	Response { rooms[] }
+
+POST	/room
+	Description: crea una nuova stanza nel database
+	Require { token, name }
+	Response {}
+
+PUT	/room
+	Description: modifica gli attributi di una stanza
+	Require { token, id, name, number, site }
+	Responce {}
+
+DELETE	/room
+	Description: elimina una stanza dal database
+	Require { token, id }
+	Responce {}
+
+-----------Teacher-------------
+
+
+GET	/teach
+	Description: ottieni tutti gli insegnanti
+	Require { token }
+	

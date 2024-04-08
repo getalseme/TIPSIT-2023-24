@@ -1,0 +1,713 @@
+openapi: 3.0.0
+info:
+  title: School Resources API
+  description: API for managing school resources such as users, classes, activities, rooms, schedules, etc.
+  version: 0.1.0
+  contact:
+    name: Giulio Semenzato
+    email: giulio.semenzato@itiszuccante.edu.it
+tags:
+  - name: User
+    description: Everything about User
+  - name: Class
+    description: Everything about Class
+paths:
+  /user:
+    get:
+      tags:
+        - User
+      summary: Ottieni i dati dell'utente
+      description: Retrieves user data.
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+          description: User's email address.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: User data retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags:
+        - User
+      summary: Elimina un utente dal database
+      description: Deletes a user from the database.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the user to be deleted.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: User deleted successfully.
+  /user/room:
+    get:
+      tags:
+        - User
+      summary: Ottieni l'aula in cui si trova un utente
+      description: Retrieves the room where the user is located.
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+          description: User's email address.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Room data retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+
+  /user/login:
+    post:
+      tags:
+        - User
+      summary: Effettui il login con un utente
+      description: Logs in with a user's credentials.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful. Returns authentication token and expiration time.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expire_time:
+                    type: string
+                    format: date-time
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+          description: User's email.
+        - in: query
+          name: password
+          required: true
+          schema:
+            type: string
+          description: User's password.
+
+  /user/add:
+    post:
+      tags:
+        - User
+      summary: Aggiungi un utente al database
+      description: Adds a user to the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User added successfully.
+
+  /user/addList:
+    post:
+      tags:
+        - User
+      summary: Aggiunge una lista di utenti al database
+      description: Adds a list of users to the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Users added successfully.
+
+  /user/admin:
+    post:
+      tags:
+        - User
+      summary: Assegna ad un utente il ruolo di admin
+      description: Assigns admin role to a user.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the user.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Admin role assigned successfully.
+
+  /user/logout:
+    delete:
+      tags:
+        - User
+      summary: Effettua il logout dal sito eliminando la sessione
+      description: Logs out the user, deleting the session.
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '204':
+          description: Logout successful.
+  /class:
+    get:
+      tags:
+        - Class
+      summary: Ottieni la classe in base al suo id
+      description: Retrieves the class based on its ID.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the class.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Class data retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Class'
+    put:
+      tags:
+        - Class
+      summary: Modifica il nome della classe
+      description: Modifies the name of the class.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the class.
+        - in: query
+          name: name
+          required: true
+          schema:
+            type: string
+          description: New name for the class.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Class name updated successfully.
+    delete:
+      tags:
+        - Class
+      summary: Elimina la classe dal database
+      description: Deletes the class from the database.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the class to be deleted.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Class deleted successfully.
+
+  /class/add:
+    post:
+      tags:
+        - Class
+      summary: Crea una nuova classe nel database
+      description: Creates a new class in the database.
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+      responses:
+        '200':
+          description: Class added successfully.
+  /class/deleteList:
+    delete:
+      tags:
+        - Class
+      summary: Elimina la lista di classi dal database
+      description: Deletes a list of classes from the database.
+      parameters:
+        - in: query
+          name: ids
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+          description: List of IDs of classes to be deleted.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Classes deleted successfully.
+
+  /class/users:
+    get:
+      tags:
+        - Class
+      summary: Ottieni gli utenti appartenenti ad una classe
+      description: Retrieves the users belonging to a class.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the class.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Users belonging to the class retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      tags:
+        - Class
+      summary: Aggiunge un utente ad una classe
+      description: Adds a user to a class.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the class.
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+          description: Email of the user to be added.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: User added to the class successfully.
+    delete:
+      tags:
+        - Class
+      summary: Elimina un utente dalla classe
+      description: Deletes a user from the class.
+      parameters:
+        - in: query
+          name: id_classe
+          required: true
+          schema:
+            type: integer
+          description: ID of the class.
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+          description: Email of the user to be deleted.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: User deleted from the class successfully.
+  /class/user/addList:
+    post:
+      tags:
+        - Class
+      summary: Aggiunge una lista di utenti ad una classe
+      description: Adds a list of users to a class.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the class.
+        - in: query
+          name: emails
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          description: List of emails of users to be added.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Users added to the class successfully.
+  /class/user/deleteList:
+    delete:
+      tags:
+        - Class
+      summary: Elimina una lista di utenti dalla classe
+      description: Deletes a list of users from the class.
+      parameters:
+        - in: query
+          name: id_classe
+          required: true
+          schema:
+            type: integer
+          description: ID of the class.
+        - in: query
+          name: emails
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          description: List of emails of users to be deleted.
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: User's authentication token.
+      responses:
+        '200':
+          description: Users deleted from the class successfully.
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address of the user.
+        name:
+          type: string
+          description: The name of the user.
+        surname:
+          type: string
+          description: The surname of the user.
+        password:
+          type: string
+          description: The hashed password of the user.
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the student.
+        user_id:
+          type: string
+          description: The email address of the user associated with the student.
+          
+    Teacher:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the teacher.
+        user_id:
+          type: string
+          description: The email address of the user associated with the teacher.
+
+    Admin:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the admin.
+        user_id:
+          type: string
+          description: The email address of the user associated with the admin.
+
+    Unavailable:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the unavailable time slot.
+        start:
+          type: string
+          format: date-time
+          description: The start date and time of the unavailable period.
+        end:
+          type: string
+          format: date-time
+          description: The end date and time of the unavailable period.
+        description:
+          type: string
+          description: Description of the unavailability.
+        user_id:
+          type: string
+          description: The email address of the user associated with the unavailable time slot.
+
+    Class:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the class.
+        name:
+          type: string
+          description: The name of the class.
+        creation:
+          type: string
+          format: date-time
+          description: The date and time of class creation.
+
+    StudentInClass:
+      type: object
+      properties:
+        class_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the class.
+        student_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the student.
+
+    UnavailableClass:
+      type: object
+      properties:
+        unavailability_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the unavailable time slot.
+        class_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the class.
+
+    Activity:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the activity.
+        description:
+          type: string
+          description: Description of the activity.
+        public:
+          type: boolean
+          description: Indicates whether the activity is public or not.
+        teacher_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the teacher associated with the activity.
+
+    ClassActivity:
+      type: object
+      properties:
+        class_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the class.
+        activity_name:
+          type: string
+          description: The name of the activity associated with the class.
+
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the room.
+        name:
+          type: string
+          description: The name of the room.
+        site:
+          type: integer
+          format: int32
+          description: The site number of the room.
+        number:
+          type: integer
+          format: int32
+          description: The room number.
+
+    ScheduleTime:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the schedule time.
+        day:
+          type: integer
+          format: int32
+          description: The day of the schedule time.
+        hour:
+          type: integer
+          format: int32
+          description: The hour of the schedule time.
+
+    DayTime:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The unique identifier for the day time.
+        date:
+          type: string
+          format: date
+          description: The date of the day time.
+        hour:
+          type: integer
+          format: int32
+          description: The hour of the day time.
+
+    Booking:
+      type: object
+      properties:
+        day_time_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the day time.
+        teacher_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the teacher.
+        room_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the room.
+        activity_name:
+          type: string
+          description: The name of the activity.
+        reason:
+          type: string
+          description: The reason for booking.
+
+    Schedule:
+      type: object
+      properties:
+        schedule_time_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the schedule time.
+        teacher_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the teacher.
+        room_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the room.
+        class_id:
+          type: integer
+          format: int32
+          description: The unique identifier for the class.
+        subject:
+          type: string
+          description: The subject of the schedule.
